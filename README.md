@@ -2,6 +2,6 @@
 
 Students:
 
-* Surname_1, First_name_1
+* López de los Santos Juanes, Sergi
 
-* Surname_2, First_name_2
+* Cieza Peña, Carlos Fabian
