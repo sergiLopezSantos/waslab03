@@ -24,13 +24,25 @@ public class Tasca_6 extends HttpServlet {
             String accountId = "109862447110628983";
 
             // Obtenir el darrer tut (status) del compte fib_asw
-            String statusUri = BASE_URI + "/accounts/" + accountId + "/followers";
-            String output = Request.get(statusUri)
+            String followersURI = BASE_URI + "/accounts/" + accountId + "/followers";
+            String output = Request.get(followersURI)
                     .addHeader("Authorization", "Bearer " + TOKEN)
                     .execute()
                     .returnContent()
                     .asString();
 
+            // Processar la resposta per obtenir el darrer tut
+            JSONArray followers = new JSONArray(output);
+            JSONObject follower;
+            int count = 0;
+            if (!followers.isEmpty()) {
+                while((follower = followers.getJSONObject(count)).isEmpty()){
+                    count ++;
+                    //mostrar avatar, display name i username
+                    }
+            } else {
+                System.out.println("No hi ha tuts disponibles per mostrar.");
+            }
 
         } catch (Exception ex) {
             ex.printStackTrace();
