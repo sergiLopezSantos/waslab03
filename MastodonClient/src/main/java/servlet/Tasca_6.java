@@ -87,15 +87,44 @@ public class Tasca_6 extends HttpServlet {
                             htmlContent.append("  <div class='tuts'>\n");
                             for (int j = 0; j < statuses.length(); j++) {
                                 JSONObject status = statuses.getJSONObject(j);
-                                String content = status.optString("content", "");
                                 String createdAt = status.optString("created_at", "");
 
                                 // Formatar la data
                                 String formattedDate = formatDate(createdAt);
 
-                                htmlContent.append("    <div class='tut'>\n");
-                                htmlContent.append("      <p class='timestamp'>").append(formattedDate).append("</p>\n");
-                                htmlContent.append("      <div class='content'>").append(content).append("</div>\n");
+                                // Detectar si és un retut (reblog)
+                                JSONObject reblog = status.optJSONObject("reblog");
+                                boolean isReblog = reblog != null;
+
+                                htmlContent.append("    <div class='tut");
+                                if (isReblog) {
+                                    htmlContent.append(" reblog");
+                                }
+                                htmlContent.append("'>\n");
+
+                                // Si és un retut, mostrar informació del reblog
+                                if (isReblog) {
+                                    JSONObject originalAccount = reblog.optJSONObject("account");
+                                    String originalAuthor = originalAccount != null ? originalAccount.optString("display_name", "Unknown") : "Unknown";
+                                    String originalAcct = originalAccount != null ? originalAccount.optString("acct", "") : "";
+
+                                    htmlContent.append("      <p class='timestamp'>🔁 Retut - ").append(formattedDate);
+                                    htmlContent.append(" <span class='original-author'>(Original: ").append(escapeHtml(originalAuthor));
+                                    if (!originalAcct.isEmpty()) {
+                                        htmlContent.append(" (@").append(escapeHtml(originalAcct)).append(")");
+                                    }
+                                    htmlContent.append(")</span></p>\n");
+
+                                    // Mostrar contingut del retut original
+                                    String originalContent = reblog.optString("content", "");
+                                    htmlContent.append("      <div class='content'>").append(originalContent).append("</div>\n");
+                                } else {
+                                    // Es tracta d'un tut normal
+                                    String content = status.optString("content", "");
+                                    htmlContent.append("      <p class='timestamp'>").append(formattedDate).append("</p>\n");
+                                    htmlContent.append("      <div class='content'>").append(content).append("</div>\n");
+                                }
+
                                 htmlContent.append("    </div>\n");
                             }
                             htmlContent.append("  </div>\n");
