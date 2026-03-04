@@ -28,16 +28,16 @@ public class Tasca_6 extends HttpServlet {
             // ID del compte fib_asw (hardcodejat)
             String accountId = "109862447110628983";
 
-            // Obtenir els seguidors del compte fib_asw
-            String followersURI = BASE_URI + "/accounts/" + accountId + "/followers";
-            String output = Request.get(followersURI)
+            // Obtenir els comptes que segueix fib_asw
+            String followingURI = BASE_URI + "/accounts/" + accountId + "/following";
+            String output = Request.get(followingURI)
                     .addHeader("Authorization", "Bearer " + TOKEN)
                     .execute()
                     .returnContent()
                     .asString();
 
-            // Processar la resposta per mostrar els seguidors
-            JSONArray followers = new JSONArray(output);
+            // Processar la resposta per mostrar els comptes seguits
+            JSONArray following = new JSONArray(output);
 
             // Generar timestamp
             SimpleDateFormat sdf = new SimpleDateFormat("EEEE, dd MMMM 'de' yyyy 'a les' HH:mm:ss", Locale.forLanguageTag("ca"));
@@ -45,36 +45,35 @@ public class Tasca_6 extends HttpServlet {
 
             // Generar header
             htmlContent.append("<div class='header'>\n");
-            htmlContent.append("  <h1>Seguidors del compte fib_asw</h1>\n");
-            htmlContent.append("  <p>").append(timestamp).append("</p>\n");
+            htmlContent.append("<h1>Els cinc tuts més recents del comptes seguits per l'usuari 'fib_asw'</h1>\n");
+            htmlContent.append("<p>").append(timestamp).append("</p>\n");
             htmlContent.append("</div>\n");
 
-            if (followers.length() > 0) {
-                for (int i = 0; i < followers.length(); i++) {
-                    JSONObject follower = followers.getJSONObject(i);
+            if (!following.isEmpty()) {
+                for (int i = 0; i < following.length(); i++) {
+                    JSONObject followingUser = following.getJSONObject(i);
 
-                    // Obtenir dades del seguidor
-                    String avatar = follower.optString("avatar", "");
-                    String displayName = follower.optString("display_name", "");
-                    String acct = follower.optString("acct", ""); // Username complet amb domini
-                    String username = follower.optString("username", "");
-                    int followersCount = follower.optInt("followers_count", 0);
-                    String followerId = follower.optString("id", "");
+                    // Obtenir dades del seguit
+                    String avatar = followingUser.optString("avatar", "");
+                    String displayName = followingUser.optString("display_name", "");
+                    String acct = followingUser.optString("acct", ""); // Username complet amb domini
+                    int followersCount = followingUser.optInt("followers_count", 0);
+                    String followingUserId = followingUser.optString("id", "");
 
                     htmlContent.append("<div class='account'>\n");
 
-                    // Avatar i informació del seguidor
-                    htmlContent.append("  <h2>");
+                    // Avatar i informació del seguit
+                    htmlContent.append("<h2>");
                     if (!avatar.isEmpty()) {
                         htmlContent.append("<img src='").append(avatar)
                                 .append("' alt='Avatar' class='account-avatar'> ");
                     }
                     htmlContent.append(escapeHtml(displayName)).append(" (@").append(escapeHtml(acct)).append(")</h2>\n");
-                    htmlContent.append("  <p>Nombre de seguidors: ").append(followersCount).append("</p>\n");
+                    htmlContent.append("<p>Nombre de seguidors: ").append(followersCount).append("</p>\n");
 
-                    // Obtenir els cinc tuts més recents del seguidor
+                    // Obtenir els cinc tuts més recents del seguit
                     try {
-                        String statusesURI = BASE_URI + "/accounts/" + followerId + "/statuses?limit=5";
+                        String statusesURI = BASE_URI + "/accounts/" + followingUserId + "/statuses?limit=5";
                         String statusesResponse = Request.get(statusesURI)
                                 .addHeader("Authorization", "Bearer " + TOKEN)
                                 .execute()
@@ -83,8 +82,8 @@ public class Tasca_6 extends HttpServlet {
 
                         JSONArray statuses = new JSONArray(statusesResponse);
 
-                        if (statuses.length() > 0) {
-                            htmlContent.append("  <div class='tuts'>\n");
+                        if (!statuses.isEmpty()) {
+                            htmlContent.append("<div class='tuts'>\n");
                             for (int j = 0; j < statuses.length(); j++) {
                                 JSONObject status = statuses.getJSONObject(j);
                                 String createdAt = status.optString("created_at", "");
@@ -96,7 +95,7 @@ public class Tasca_6 extends HttpServlet {
                                 JSONObject reblog = status.optJSONObject("reblog");
                                 boolean isReblog = reblog != null;
 
-                                htmlContent.append("    <div class='tut");
+                                htmlContent.append("<div class='tut");
                                 if (isReblog) {
                                     htmlContent.append(" reblog");
                                 }
@@ -108,8 +107,8 @@ public class Tasca_6 extends HttpServlet {
                                     String originalAuthor = originalAccount != null ? originalAccount.optString("display_name", "Unknown") : "Unknown";
                                     String originalAcct = originalAccount != null ? originalAccount.optString("acct", "") : "";
 
-                                    htmlContent.append("      <p class='timestamp'>🔁 Retut - ").append(formattedDate);
-                                    htmlContent.append(" <span class='original-author'>(Original: ").append(escapeHtml(originalAuthor));
+                                    htmlContent.append("<p class='timestamp'>🔁 Retut - ").append(formattedDate);
+                                    htmlContent.append("<span class='original-author'>(Original: ").append(escapeHtml(originalAuthor));
                                     if (!originalAcct.isEmpty()) {
                                         htmlContent.append(" (@").append(escapeHtml(originalAcct)).append(")");
                                     }
@@ -117,32 +116,32 @@ public class Tasca_6 extends HttpServlet {
 
                                     // Mostrar contingut del retut original
                                     String originalContent = reblog.optString("content", "");
-                                    htmlContent.append("      <div class='content'>").append(originalContent).append("</div>\n");
+                                    htmlContent.append("<div class='content'>").append(originalContent).append("</div>\n");
                                 } else {
                                     // Es tracta d'un tut normal
                                     String content = status.optString("content", "");
-                                    htmlContent.append("      <p class='timestamp'>").append(formattedDate).append("</p>\n");
-                                    htmlContent.append("      <div class='content'>").append(content).append("</div>\n");
+                                    htmlContent.append("<p class='timestamp'>").append(formattedDate).append("</p>\n");
+                                    htmlContent.append("<div class='content'>").append(content).append("</div>\n");
                                 }
 
-                                htmlContent.append("    </div>\n");
+                                htmlContent.append("</div>\n");
                             }
-                            htmlContent.append("  </div>\n");
+                            htmlContent.append("</div>\n");
                         }
                     } catch (Exception ex) {
-                        // Si no es poden obtenir els tuts, continuar amb el següent seguidor
+                        // Si no es poden obtenir els tuts, continuar amb el següent seguit
                         System.err.println("Error obtenint tuts per a " + acct + ": " + ex.getMessage());
                     }
 
                     htmlContent.append("</div>\n");
                 }
             } else {
-                htmlContent.append("<p>No hi ha seguidors disponibles per mostrar.</p>\n");
+                htmlContent.append("<p>No hi ha comptes seguits disponibles per mostrar.</p>\n");
             }
 
         } catch (Exception ex) {
             ex.printStackTrace();
-            htmlContent.append("<p style='color: var(--danger);'>Error en carregar els seguidors: ").append(escapeHtml(ex.getMessage())).append("</p>\n");
+            htmlContent.append("<p style='color: var(--danger);'>Error en carregar els comptes seguits: ").append(escapeHtml(ex.getMessage())).append("</p>\n");
         }
 
         response.setContentType ("text/html");
